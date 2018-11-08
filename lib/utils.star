@@ -1,4 +1,6 @@
 def react(comment_id, err):
+  github_issue_create_comment('bla')
+  
   if err:
     github_issue_create_comment(err)
     reaction = '+1'
