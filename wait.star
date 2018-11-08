@@ -20,14 +20,18 @@ def on_pull_request(action):
 
 
 # issue comment always triggered only after commands are handled.
-def on_issue_comment(action, commands):
+def _issue_comment(action, commands):
   # if 'wait' command was issued in this invocation, don't attempt
   # to mark as changed.
   if 'wait' in [command.get('name') for command in commands]:
     return
 
-  if action == 'created':
+  if action in ['submitted', 'created']:
     _changed()
 
 
 command(name='wait', func=_wait)
+
+issue_comment(func=_issue_comment)
+pull_request_review(func=_issue_comment)
+pull_request_review_comment(func=_changed)
