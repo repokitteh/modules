@@ -31,7 +31,6 @@ def _issue_comment(action, commands):
 
 
 command(name='wait', func=_wait)
-command(name='wait1', func=_wait)
 
 issue_comment(func=_issue_comment)
 pull_request_review(func=_issue_comment)
