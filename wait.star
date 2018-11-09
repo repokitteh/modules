@@ -24,17 +24,6 @@ def _wait_any(comment_id, labels):
   react(comment_id, None)
 
 
-def on_pull_request(action, labels):
-  if action != 'synchronize':
-    return
-    
-  if _waiting_push_label in labels:
-    github_issue_unlabel(_waiting_push_label)
-
-  if _waiting_any_label in labels:
-    github_issue_unlabel(_waiting_any_label)
-
-
 # issue comment always triggered only after commands are handled.
 def _issue_comment(action, commands, review_id, labels):
   if not(action in ['submitted', 'created']):
@@ -56,6 +45,17 @@ def _issue_comment(action, commands, review_id, labels):
     return
 
   github_issue_unlabel(_waiting_any_label)
+
+
+def on_pull_request(action, labels):
+  if action != 'synchronize':
+    return
+    
+  if _waiting_push_label in labels:
+    github_issue_unlabel(_waiting_push_label)
+
+  if _waiting_any_label in labels:
+    github_issue_unlabel(_waiting_any_label)
 
 
 issue_comment(func=_issue_comment)
