@@ -2,7 +2,7 @@ load("github.com/repokitteh/modules/lib/utils.star", "react")
 
 
 def _assign(comment_id, action, sender, command):
-  if action != 'created':
+  if not(action in ['created', 'opened']):
     return
 
   if not github_issue_check_assignee(sender):
