@@ -62,5 +62,5 @@ issue_comment(func=_issue_comment)
 pull_request_review(func=_issue_comment)
 pull_request_review_comment(func=_issue_comment)
 
-command(names='wait', func=_wait_push)
+command(name='wait', func=_wait_push)
 command(name='wait-any', func=_wait_any)
