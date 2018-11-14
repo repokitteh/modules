@@ -28,17 +28,17 @@ def _wait_any(comment_id, labels):
 def _issue_comment(action, commands, review_id, labels):
   if not(action in ['submitted', 'created']):
     return
-    
+
   if not(_waiting_any_label in labels):
     return
 
   commands = commands or []
-  
+
   # if in a review context, get commands from actual review.
   if review_id:
     review_body = github_pr_review(int(review_id)).get('body', '')
     commands.extend(parse_commands(review_body))
-    
+
   # if 'wait' command was issued in this invocation, don't attempt
   # to mark as changed.
   if commands and any([command.get('name') in ['wait', 'wait-push', 'wait-any'] for command in commands]):
@@ -50,7 +50,7 @@ def _issue_comment(action, commands, review_id, labels):
 def on_pull_request(action, labels):
   if action != 'synchronize':
     return
-    
+
   if _waiting_push_label in labels:
     github_issue_unlabel(_waiting_push_label)
 
