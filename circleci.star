@@ -17,7 +17,7 @@ def _cancel(config, repo_owner, repo_name, command):
     ))
 
 
-command(name='cancel-circle', func=_cancel)
+command(name='cancel-circle', func=_cancel, enabled=False)
 
 
 def _retry(config, repo_owner, repo_name, comment_id):
