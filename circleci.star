@@ -41,9 +41,11 @@ def _retry(config, repo_owner, repo_name, comment_id):
     if not status['state'] in ['error', 'failure']:
       continue
 
-    m = match(text=status['target_url'], pattern='/([0-9]+)\?')
+    target_url = status['target_url']
+    
+    m = match(text=target_url, pattern='/([0-9]+)\?')
     if m and len(m) == 2:
-      failed_builds.append((int(m[1]), context))
+      failed_builds.append((int(m[1]), target_url, context))
 
   if not failed_builds:
     error('combined status is %s, but no failed builds.' % combined_status)
@@ -51,7 +53,7 @@ def _retry(config, repo_owner, repo_name, comment_id):
   msgs = []
   any_err = False
   for build in failed_builds:
-    build_id, context = build
+    build_id, target_url, context = build
 
     resp = retry(
       repo_owner,
@@ -63,7 +65,7 @@ def _retry(config, repo_owner, repo_name, comment_id):
     print(build_id, resp)
 
     if resp['status_code'] == 200:
-      msg = ':hammer: rebuilding `%s`' % context
+      msg = ':hammer: rebuilding `%s` ([failed build](%s))' % (context, target_url)
     else:
       any_err = True
       msg = ':scream_cat: failed invoking rebuild of `%s`: %s' % (context, resp['status'])
