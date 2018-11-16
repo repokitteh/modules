@@ -65,7 +65,7 @@ def _retry(config, repo_owner, repo_name, comment_id):
     print(build_id, resp)
 
     if resp['status_code'] == 200:
-      msg = ':hammer: rebuilding [%s](%s)' % (context, target_url)
+      msg = ':hammer: rebuilding `%s` ([failed build](%s))' % (context, target_url)
     else:
       any_err = True
       msg = ':scream_cat: failed invoking rebuild of `%s`: %s' % (context, resp['status'])
