@@ -15,7 +15,7 @@ def _assign(comment_id, action, sender, command):
       # no arguments -> assume sender.
       users.append(sender)
 
-  nopes = [user for user in users if not github_issue_check_assignee(user)]
+  nopes = [user for user in users if not github.issue_check_assignee(user)]
 
   if len(nopes) == 1:
     react(comment_id, '%s cannot be assigned to this issue.' % nopes[0])
