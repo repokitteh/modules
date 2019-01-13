@@ -1,4 +1,4 @@
-load("github.com/repokitteh/modules/lib/utils.star", "react")
+load("github.com/repokitteh/modules/lib/utils.star#gf", "react")
 
 
 def _assign(comment_id, action, sender, command):
