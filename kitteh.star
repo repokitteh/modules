@@ -4,7 +4,7 @@ def _kitteh():
     url = resp["json"].get("file")
     if not url:
       error("invalid response from server: %s" % resp)
-    github_issue_create_comment("![meow](%s)" % url)
+    github.issue_create_comment("![meow](%s)" % url)
   else:
     error("request failed: %s" % resp)
 
