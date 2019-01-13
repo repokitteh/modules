@@ -21,12 +21,14 @@ command(name='cancel-circle', func=_cancel, enabled=False)
 
 
 def _retry(config, repo_owner, repo_name, comment_id):
-  combined_status, statuses = github_get_statuses()
+  combined = github.get_combined_statuses()
 
-  if combined_status == 'pending':
+  combined_state, statuses = combined['state'], combined['statuses']
+
+  if combined_state == 'pending':
     react(comment_id, ':horse: hold your horses - no failures detected, yet.')
     return
-  elif combined_status == 'success':
+  elif combined_state == 'success':
     react(comment_id, ':woman_shrugging: nothing to rebuild.')
     return
 
@@ -48,7 +50,7 @@ def _retry(config, repo_owner, repo_name, comment_id):
       failed_builds.append((int(m[1]), target_url, context))
 
   if not failed_builds:
-    error('combined status is %s, but no failed builds.' % combined_status)
+    error('combined status is %s, but no failed builds.' % combined_state)
 
   msgs = []
   any_err = False
@@ -78,7 +80,7 @@ def _retry(config, repo_owner, repo_name, comment_id):
     react(comment_id, msgs)
   else:
     react(comment_id, None)
-    github_issue_create_comment(msgs)
+    github.issue_create_comment(msgs)
 
 
 command(name='retry-circle', func=_retry)
