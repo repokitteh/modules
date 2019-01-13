@@ -6,4 +6,4 @@ def react(comment_id, err):
     reaction = '+1'
 
   if comment_id:
-    github_issue_create_comment_reaction(comment_id, reaction)
+    github.issue_create_comment_reaction(comment_id, reaction)
