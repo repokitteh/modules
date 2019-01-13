@@ -5,7 +5,7 @@ def _assign(comment_id, action, sender, command):
   if not(action in ['created', 'opened']):
     return
 
-  if not github_issue_check_assignee(sender):
+  if not github.issue_check_assignee(sender):
     react(comment_id, '%s is not allowed to assign users.' % sender)
     return
 
@@ -23,7 +23,7 @@ def _assign(comment_id, action, sender, command):
     react(comment_id, 'neither of %s can be assigned to this issue.' % ', '.join(nopes))
   else:
     # yay!
-    github_issue_assign(*users)
+    github.issue_assign(*users)
     react(comment_id, None)
 
 
@@ -31,7 +31,7 @@ def _unassign(comment_id, action, sender, command):
   if action != 'created':
     return
 
-  if not github_issue_check_assignee(sender):
+  if not github.issue_check_assignee(sender):
     react(comment_id, '%s is not allowed to unassign users.' % sender)
     return
 
@@ -41,7 +41,7 @@ def _unassign(comment_id, action, sender, command):
     # no arguments -> assume sender.
     users.append(sender)
 
-  github_issue_unassign(*users)
+  github.issue_unassign(*users)
   react(comment_id, None)
 
 
