@@ -21,7 +21,7 @@ command(name='cancel-circle', func=_cancel, enabled=False)
 
 
 def _retry(config, repo_owner, repo_name, comment_id, sha):
-  combined = github.get_combined_statuses(sha=sha)
+  combined = github.get_combined_statuses(ref=sha)
 
   combined_state, statuses = combined['state'], combined['statuses']
 
