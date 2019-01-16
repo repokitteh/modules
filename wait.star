@@ -10,17 +10,17 @@ _waiting_any_label = 'waiting:any'
 
 def _wait_push(comment_id, labels):
   if _waiting_any_label in labels:
-    github_issue_unlabel(_waiting_any_label)
+    github.issue_unlabel(_waiting_any_label)
 
-  github_issue_label(_waiting_push_label)
+  github.issue_label(_waiting_push_label)
   react(comment_id, None)
 
 
 def _wait_any(comment_id, labels):
   if _waiting_push_label in labels:
-    github_issue_unlabel(_waiting_push_label)
+    github.issue_unlabel(_waiting_push_label)
 
-  github_issue_label(_waiting_any_label)
+  github.issue_label(_waiting_any_label)
   react(comment_id, None)
 
 
@@ -36,7 +36,7 @@ def _issue_comment(action, commands, review_id, labels):
 
   # if in a review context, get commands from actual review.
   if review_id:
-    review_body = github_pr_review(int(review_id)).get('body', '')
+    review_body = github.pr_get_review(int(review_id)).get('body', '')
     commands.extend(parse_commands(review_body))
 
   # if 'wait' command was issued in this invocation, don't attempt
@@ -44,7 +44,7 @@ def _issue_comment(action, commands, review_id, labels):
   if commands and any([command.get('name') in ['wait', 'wait-push', 'wait-any'] for command in commands]):
     return
 
-  github_issue_unlabel(_waiting_any_label)
+  github.issue_unlabel(_waiting_any_label)
 
 
 def on_pull_request(action, labels):
@@ -52,10 +52,10 @@ def on_pull_request(action, labels):
     return
 
   if _waiting_push_label in labels:
-    github_issue_unlabel(_waiting_push_label)
+    github.issue_unlabel(_waiting_push_label)
 
   if _waiting_any_label in labels:
-    github_issue_unlabel(_waiting_any_label)
+    github.issue_unlabel(_waiting_any_label)
 
 
 issue_comment(func=_issue_comment)
