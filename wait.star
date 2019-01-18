@@ -47,7 +47,7 @@ def _issue_comment(action, commands, review_id, labels):
   github.issue_unlabel(_waiting_any_label)
 
 
-def on_pull_request(action, labels):
+def _pull_request(action, labels):
   if action != 'synchronize':
     return
 
@@ -59,6 +59,8 @@ def on_pull_request(action, labels):
 
 
 issue_comment(func=_issue_comment)
+
+pull_request(func=_pull_request)
 pull_request_review(func=_issue_comment)
 pull_request_review_comment(func=_issue_comment)
 
