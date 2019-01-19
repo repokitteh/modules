@@ -17,7 +17,7 @@ def _cancel(config, repo_owner, repo_name, command):
     ))
 
 
-command(name='cancel-circle', func=_cancel, enabled=False)
+handlers.command(name='cancel-circle', func=_cancel, enabled=False)
 
 
 def _retry(config, repo_owner, repo_name, comment_id):
@@ -44,7 +44,7 @@ def _retry(config, repo_owner, repo_name, comment_id):
       continue
 
     target_url = status['target_url']
-    
+
     m = match(text=target_url, pattern='/([0-9]+)\?')
     if m and len(m) == 2:
       failed_builds.append((int(m[1]), target_url, context))
@@ -83,4 +83,4 @@ def _retry(config, repo_owner, repo_name, comment_id):
     github.issue_create_comment(msgs)
 
 
-command(name='retry-circle', func=_retry)
+handlers.command(name='retry-circle', func=_retry)

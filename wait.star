@@ -58,11 +58,11 @@ def _pull_request(action, labels):
     github.issue_unlabel(_waiting_any_label)
 
 
-issue_comment(func=_issue_comment)
+handlers.issue_comment(func=_issue_comment)
 
-pull_request(func=_pull_request)
-pull_request_review(func=_issue_comment)
-pull_request_review_comment(func=_issue_comment)
+handlers.pull_request(func=_pull_request)
+handlers.pull_request_review(func=_issue_comment)
+handlers.pull_request_review_comment(func=_issue_comment)
 
-command(name='wait', func=_wait_push)
-command(name='wait-any', func=_wait_any)
+handlers.command(name='wait', func=_wait_push)
+handlers.command(name='wait-any', func=_wait_any)

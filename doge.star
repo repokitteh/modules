@@ -6,4 +6,5 @@ def _doge():
   else:
     error("request failed: %s" % resp)
 
-command(name='doge', func=_doge)
+
+handlers.command(name='doge', func=_doge)

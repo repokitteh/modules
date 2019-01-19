@@ -1,4 +1,6 @@
 def react(comment_id, err):
+  """Reacts on a specific comment."""
+
   if err:
     github.issue_create_comment(err)
     reaction = 'confused'

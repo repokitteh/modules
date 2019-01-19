@@ -45,5 +45,5 @@ def _unassign(comment_id, action, sender, command):
   react(comment_id, None)
 
 
-command(name='assign', func=_assign)
-command(name='unassign', func=_unassign)
+handlers.command(name='assign', func=_assign)
+handlers.command(name='unassign', func=_unassign)
