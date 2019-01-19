@@ -8,4 +8,5 @@ def _kitteh():
   else:
     error("request failed: %s" % resp)
 
-command(name='kitteh', func=_kitteh)
+
+handlers.command(name='kitteh', func=_kitteh)

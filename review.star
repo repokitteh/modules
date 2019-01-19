@@ -44,5 +44,5 @@ def _unreview(comment_id, action, sender, command):
   react(comment_id, None)
 
 
-command(name='review', func=_review)
-command(name='unreview', func=_unreview)
+handlers.command(name='review', func=_review)
+handlers.command(name='unreview', func=_unreview)
