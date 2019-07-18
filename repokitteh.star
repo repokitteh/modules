@@ -3,10 +3,4 @@ use("github.com/repokitteh/modules/doge.star")
 use("github.com/repokitteh/modules/kitteh.star")
 use("github.com/repokitteh/modules/review.star")
 use("github.com/repokitteh/modules/wait.star")
-use(
-  "github.com/repokitteh/modules/ownerscheck.star",
-  paths=[
-    ('itayd!', ''),
-    ('itayd', 'lib/'),
-  ],
-)
+use("github.com/repokitteh/modules/ownerscheck.star")
