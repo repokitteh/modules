@@ -7,5 +7,6 @@ use(
   "github.com/repokitteh/modules/ownerscheck.star",
   paths=[
     ('itayd!', ''),
+    ('itayd', 'lib/'),
   ],
 )
