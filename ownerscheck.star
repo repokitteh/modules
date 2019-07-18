@@ -3,7 +3,7 @@
 def _get_relevant_specs(specs):
   if not specs:
     return []
-    
+
   pr_paths = [f['filename'] for f in github.pr_list_files()]
 
   relevant = []
@@ -62,7 +62,7 @@ def _reconcile(config):
 
   for owner, prefix, paths, approved in results:
     if owner[-1] == '!':
-      _update_status(owner, prefix, paths, approved)
+      _update_status(owner[:-1], prefix, paths, approved)
 
   return results
 
@@ -78,6 +78,9 @@ def _reconcile_and_comment(config):
 
     if owner[0] != '@':
       owner = '@' + owner
+
+    if owner[-1] == '!':
+      owner = owner[:-1]
 
     if prefix:
       prefix = ' for changes made to `' + prefix + '`'
