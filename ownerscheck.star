@@ -1,6 +1,9 @@
 # specs: [(owner, prefix, mode)]
 # returns: [(owner, prefix, [path])]
 def _get_relevant_specs(specs):
+  if not specs:
+    return []
+    
   pr_paths = [f['filename'] for f in github.pr_list_files()]
 
   relevant = []
