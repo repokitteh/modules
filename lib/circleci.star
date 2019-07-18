@@ -1,7 +1,6 @@
 load('text', 'match')
 
 
-
 def _call(owner, repo, build_id, verb, token):
   """Makes a CircleCI API request."""
 

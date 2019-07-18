@@ -82,7 +82,7 @@ def _reconcile_and_comment(config):
     if owner[-1] == '!':
       lines.append('CC %s: Your approval is needed%s.' % (owner, prefix))
     else:
-      lines.append('CC %s: FYI only%s' % (owner, prefix))
+      lines.append('CC %s: FYI only%s.' % (owner, prefix))
 
   github.issue_create_comment('\n'.join(lines))
 
