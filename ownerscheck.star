@@ -41,7 +41,7 @@ def _update_status(owner, prefix, paths, approved):
   github.create_status(
     state=approved and 'success' or 'pending',
     context='rk:ownerscheck:%s' % prefix,
-    description='%s must approve changes to %s' % (owner, prefix),
+    description='%s must approve changes to %s' % (owner, prefix or '/'),
   )
 
 
