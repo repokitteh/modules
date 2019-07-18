@@ -76,19 +76,21 @@ def _reconcile_and_comment(config):
     if approved:
       continue
 
-    if owner[0] != '@':
-      owner = '@' + owner
+    mention = owner
 
-    if owner[-1] == '!':
-      owner = owner[:-1]
+    if mention[0] != '@':
+      mention = '@' + mention
+
+    if mention[-1] == '!':
+      mention = mention[:-1]
 
     if prefix:
       prefix = ' for changes made to `' + prefix + '`'
 
     if owner[-1] == '!':
-      lines.append('CC %s: Your approval is needed%s.' % (owner, prefix))
+      lines.append('CC %s: Your approval is needed%s.' % (mention, prefix))
     else:
-      lines.append('CC %s: FYI only%s.' % (owner, prefix))
+      lines.append('CC %s: FYI only%s.' % (mention, prefix))
 
   github.issue_create_comment('\n'.join(lines))
 
