@@ -34,14 +34,18 @@ def _is_approved(owner, approvers):
     team_id = github.team_get_by_name(owner.split('/')[1])['id']
     required = [m['login'] for m in github.team_list_members(team_id)]
 
-  return any([any([a for a in approvers if a == r]) for r in required])
+  for r in required:
+    if any([a for a in approvers if a == r]):
+      return True
+
+  return False
 
 
 def _update_status(owner, prefix, paths, approved):
   github.create_status(
     state=approved and 'success' or 'pending',
-    context='rk:ownerscheck:%s' % prefix,
-    description='%s must approve changes to %s' % (owner, prefix or '/'),
+    context='%s must approve' % owner,
+    description='changes to %s' % (prefix or '/'),
   )
 
 
@@ -92,7 +96,8 @@ def _reconcile_and_comment(config):
     else:
       lines.append('CC %s: FYI only%s.' % (mention, prefix))
 
-  github.issue_create_comment('\n'.join(lines))
+  if lines:
+    github.issue_create_comment('\n'.join(lines))
 
 
 def _pr(action, config):
