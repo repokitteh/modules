@@ -53,7 +53,7 @@ def _reconcile(config):
   specs = _get_relevant_specs(config.get('paths', []))
 
   if not specs:
-    return
+    return []
 
   approvers = _get_approvers()
 
