@@ -71,9 +71,7 @@ def _reconcile(config):
   return results
 
 
-def _reconcile_and_comment(config):
-  results = _reconcile(config)
-
+def _comment(config, results, force=False):
   lines = []
 
   for owner, prefix, paths, approved in results:
@@ -91,14 +89,28 @@ def _reconcile_and_comment(config):
     if prefix:
       prefix = ' for changes made to `' + prefix + '`'
 
-    if owner[-1] == '!':
-      lines.append('CC %s: Your approval is needed%s.' % (mention, prefix))
+    mode = owner[-1] == '!' and 'approval' or 'fyi'
+
+    key = "ownerscheck/%s/%s" % (owner, prefix)
+
+    if (not force) and (store_get(key) == mode):
+      mode = 'skip'
     else:
+      store_put(key, mode)
+
+    if mode == 'approval':
+      lines.append('CC %s: Your approval is needed%s.' % (mention, prefix))
+    elif mode == 'fyi':
       lines.append('CC %s: FYI only%s.' % (mention, prefix))
 
   if lines:
     github.issue_create_comment('\n'.join(lines))
 
+def _reconcile_and_comment(config):
+  _comment(config, _reconcile(config))
+
+def _force_reconcile_and_comment(config):
+  _comment(config, _reconcile(config), force=True)
 
 def _pr(action, config):
   if action != 'synchronize':
@@ -118,4 +130,4 @@ handlers.pull_request(func=_pr)
 handlers.pull_request_review(func=_pr_review)
 
 handlers.command(name='checkowners', func=_reconcile)
-handlers.command(name='checkowners!', func=_reconcile_and_comment)
+handlers.command(name='checkowners!', func=_force_reconcile_and_comment)
