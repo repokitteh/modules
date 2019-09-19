@@ -52,10 +52,14 @@ def _update_status(owner, prefix, paths, approved):
 def _reconcile(config):
   specs = _get_relevant_specs(config.get('paths', []))
 
+  print("specs: %s" % specs)
+
   if not specs:
     return []
 
   approvers = _get_approvers()
+
+  print("approvers: %s" % approvers)
 
   results = []
 
@@ -63,6 +67,8 @@ def _reconcile(config):
     approved = _is_approved(owner, approvers)
 
     results.append((owner, prefix, paths, approved))
+
+  print("results: %s" % results)
 
   for owner, prefix, paths, approved in results:
     if owner[-1] == '!':
