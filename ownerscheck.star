@@ -18,9 +18,11 @@ def _get_relevant_specs(specs):
 
 # returns: list(owner)
 def _get_approvers():
-  reviews = github.pr_list_reviews()
+  reviews = [{'login': r['user']['login'], 'state': r['state']} for r in github.pr_list_reviews()]
 
-  return [r['user']['login'] for r in reviews if r['state'] == 'APPROVED']
+  print("reviews=%s" % reviews)
+
+  return [r['login'] for r in reviews if r['state'] == 'APPROVED']
 
 
 def _is_approved(owner, approvers):
@@ -30,12 +32,17 @@ def _is_approved(owner, approvers):
   required = [owner]
 
   if '/' in owner:
+    team_name = owner.split('/')[1]
+
     # this is a team, parse it.
-    team_id = github.team_get_by_name(owner.split('/')[1])['id']
+    team_id = github.team_get_by_name(team_name)['id']
     required = [m['login'] for m in github.team_list_members(team_id)]
+
+    print("team %s(%d) = %s" % (team_name, team_id, required))
 
   for r in required:
     if any([a for a in approvers if a == r]):
+      print("approver: %s" % r)
       return True
 
   return False
