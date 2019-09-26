@@ -126,10 +126,8 @@ def _force_reconcile_and_comment(config):
   _comment(config, _reconcile(config), force=True)
 
 def _pr(action, config):
-  if action != 'synchronize':
-    return
-
-  _reconcile_and_comment(config)
+  if action in ['synchronize', 'opened']:
+    _reconcile_and_comment(config)
 
 
 def _pr_review(action, review_state, config):
