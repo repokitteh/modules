@@ -99,7 +99,7 @@ def _reconcile(config):
 def _comment(config, results, force=False):
   lines = []
 
-  for owner, prefix, paths, approved, label in results:
+  for owner, prefix, paths, label, approved in results:
     if approved:
       continue
 
