@@ -1,5 +1,5 @@
-# specs: [(owner, prefix, mode)]
-# returns: [(owner, prefix, [path])]
+# specs: [(owner, prefix, label?)]
+# returns: [(owner, prefix, [path], label?)]
 def _get_relevant_specs(specs):
   if not specs:
     return []
@@ -8,10 +8,16 @@ def _get_relevant_specs(specs):
 
   relevant = []
 
-  for owner, prefix in specs:
+  for spec in specs:
+    if type(spec) == "list":
+      owner, prefix = spec
+      label = None
+    else:
+      owner, prefix, label = spec["owner"], spec["path"], spec.get("label")
+
     owned_paths = [p for p in pr_paths if p.startswith(prefix)]
     if owned_paths:
-      relevant.append((owner, prefix, owned_paths))
+      relevant.append((owner, prefix, owned_paths, label))
 
   return relevant
 
@@ -70,16 +76,22 @@ def _reconcile(config):
 
   results = []
 
-  for owner, prefix, paths in specs:
+  for owner, prefix, paths, label in specs:
     approved = _is_approved(owner, approvers)
 
-    results.append((owner, prefix, paths, approved))
+    results.append((owner, prefix, paths, label, approved))
 
   print("results: %s" % results)
 
-  for owner, prefix, paths, approved in results:
+  for owner, prefix, paths, label, approved in results:
     if owner[-1] == '!':
       _update_status(owner[:-1], prefix, paths, approved)
+
+      if label:
+        if approved:
+          github.issue_unlabel(label)
+        else:
+          github.issue_label(label)
 
   return results
 
@@ -87,7 +99,7 @@ def _reconcile(config):
 def _comment(config, results, force=False):
   lines = []
 
-  for owner, prefix, paths, approved in results:
+  for owner, prefix, paths, approved, label in results:
     if approved:
       continue
 
