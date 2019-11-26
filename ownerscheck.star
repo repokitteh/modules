@@ -1,5 +1,3 @@
-# specs: [(owner, prefix, label?)]
-# returns: [(owner, prefix, [path], label?)]
 def _get_relevant_specs(specs):
   if not specs:
     return []
@@ -9,21 +7,16 @@ def _get_relevant_specs(specs):
   relevant = []
 
   for spec in specs:
-    if type(spec) == "list":
-      owner, prefix = spec
-      label = None
-    else:
-      owner, prefix, label = spec["owner"], spec["path"], spec.get("label")
+    prefix = spec["path"]
 
     owned_paths = [p for p in pr_paths if p.startswith(prefix)]
     if owned_paths:
-      relevant.append((owner, prefix, owned_paths, label))
+      relevant.append(struct(paths=owned_paths, prefix=prefix, **spec))
 
   return relevant
 
 
-# returns: list(owner)
-def _get_approvers():
+def _get_approvers(): # -> List[str] (owners)
   reviews = [{'login': r['user']['login'], 'state': r['state']} for r in github.pr_list_reviews()]
 
   print("reviews=%s" % reviews)
@@ -76,22 +69,23 @@ def _reconcile(config):
 
   results = []
 
-  for owner, prefix, paths, label in specs:
-    approved = _is_approved(owner, approvers)
+  for spec in specs:
+    approved = _is_approved(spec.owner, approvers)
 
-    results.append((owner, prefix, paths, label, approved))
+    print("%s -> %s" % (spec, approved))
 
-  print("results: %s" % results)
+    results.append((spec, approved))
 
-  for owner, prefix, paths, label, approved in results:
-    if owner[-1] == '!':
-      _update_status(owner[:-1], prefix, paths, approved)
+    if spec.owner[-1] == '!':
+      _update_status(spec.owner[:-1], spec.prefix, spec.paths, approved)
 
-      if label:
+      if spec.label:
         if approved:
-          github.issue_unlabel(label)
+          github.issue_unlabel(spec.label)
         else:
-          github.issue_label(label)
+          github.issue_label(spec.label)
+    elif spec.label: # fyis
+      github.issue_label(spec.label)
 
   return results
 
@@ -99,11 +93,11 @@ def _reconcile(config):
 def _comment(config, results, force=False):
   lines = []
 
-  for owner, prefix, paths, label, approved in results:
+  for spec, approved in results:
     if approved:
       continue
 
-    mention = owner
+    mention = spec.owner
 
     if mention[0] != '@':
       mention = '@' + mention
@@ -111,12 +105,13 @@ def _comment(config, results, force=False):
     if mention[-1] == '!':
       mention = mention[:-1]
 
+    prefix = spec.prefix
     if prefix:
       prefix = ' for changes made to `' + prefix + '`'
 
-    mode = owner[-1] == '!' and 'approval' or 'fyi'
+    mode = spec.owner[-1] == '!' and 'approval' or 'fyi'
 
-    key = "ownerscheck/%s/%s" % (owner, prefix)
+    key = "ownerscheck/%s/%s" % (spec.owner, spec.prefix)
 
     if (not force) and (store_get(key) == mode):
       mode = 'skip'
@@ -131,11 +126,14 @@ def _comment(config, results, force=False):
   if lines:
     github.issue_create_comment('\n'.join(lines))
 
+
 def _reconcile_and_comment(config):
   _comment(config, _reconcile(config))
 
+
 def _force_reconcile_and_comment(config):
   _comment(config, _reconcile(config), force=True)
+
 
 def _pr(action, config):
   if action in ['synchronize', 'opened']:
