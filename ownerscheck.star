@@ -1,22 +1,61 @@
-def _get_relevant_specs(specs):
-  if not specs:
-    return []
+# Ownership specified by list of specs, like so:
+#
+# use(
+#   "github.com/repokitteh/modules/ownerscheck.star",
+#   paths=[
+#     {
+#       "owner": "envoyproxy/api-shepherds!",
+#       "path": "api/",
+#       "label": "api",
+#     },
+#   ],
+# )
+#
+# This module will maintain a commit status per specified path (also aka as spec).
+#
+# Two types of approvals:
+# 1. Global approvals, done by approving the PR using Github's review approval feature.
+# 2. Partial approval, done by commenting "/lgtm [label]" where label is the label
+#    associated with the path. This does not affect GitHub's PR approve status, only
+#    this module's maintained commit status. This approval is automatically revoked
+#    if any further changes are done to the relevant files in this spec.
 
-  pr_paths = [f['filename'] for f in github.pr_list_files()]
+load("github.com/repokitteh/modules/lib/utils.star", "react")
+
+def _store_partial_approval(who, files):
+  for f in files:
+    store_put('ownerscheck/partial/%s:%s' % (who, f['filename']), f['sha'])
+
+
+def _is_partially_approved(who, files):
+  for f in files:
+    sha = store_get('ownerscheck/partial/%s:%s' % (who, f['filename']))
+    if sha != f['sha']:
+      return False
+
+  return True
+
+
+def _get_relevant_specs(specs, changed_files):
+  if not specs:
+    print("no specs")
+    return []
 
   relevant = []
 
   for spec in specs:
     prefix = spec["path"]
 
-    owned_paths = [p for p in pr_paths if p.startswith(prefix)]
-    if owned_paths:
-      relevant.append(struct(paths=owned_paths, prefix=prefix, **spec))
+    files = [f for f in changed_files if f['filename'].startswith(prefix)]
+    if files:
+      relevant.append(struct(files=files, prefix=prefix, **spec))
+
+  print("specs: %s" % relevant)
 
   return relevant
 
 
-def _get_approvers(): # -> List[str] (owners)
+def _get_global_approvers(): # -> List[str] (owners)
   reviews = [{'login': r['user']['login'], 'state': r['state']} for r in github.pr_list_reviews()]
 
   print("reviews=%s" % reviews)
@@ -24,7 +63,9 @@ def _get_approvers(): # -> List[str] (owners)
   return [r['login'] for r in reviews if r['state'] == 'APPROVED']
 
 
-def _is_approved(owner, approvers):
+def _is_approved(spec, approvers):
+  owner = spec.owner
+
   if owner[-1] == '!':
     owner = owner[:-1]
 
@@ -41,50 +82,54 @@ def _is_approved(owner, approvers):
 
   for r in required:
     if any([a for a in approvers if a == r]):
-      print("approver: %s" % r)
+      print("global approver: %s" % r)
+      return True
+
+    if _is_partially_approved(r, spec.files):
+      print("partial approval: %s" % r)
       return True
 
   return False
 
 
-def _update_status(owner, prefix, paths, approved):
+def _update_status(owner, prefix, approved):
   github.create_status(
     state=approved and 'success' or 'pending',
     context='%s must approve' % owner,
     description='changes to %s' % (prefix or '/'),
   )
 
+def _get_specs(config):
+  return _get_relevant_specs(config.get('paths', []), github.pr_list_files())
 
-def _reconcile(config):
-  specs = _get_relevant_specs(config.get('paths', []))
-
-  print("specs: %s" % specs)
+def _reconcile(config, specs=None):
+  specs = specs or _get_specs(config)
 
   if not specs:
     return []
 
-  approvers = _get_approvers()
+  approvers = _get_global_approvers()
 
   print("approvers: %s" % approvers)
 
   results = []
 
   for spec in specs:
-    approved = _is_approved(spec.owner, approvers)
+    approved = _is_approved(spec, approvers)
 
     print("%s -> %s" % (spec, approved))
 
     results.append((spec, approved))
 
     if spec.owner[-1] == '!':
-      _update_status(spec.owner[:-1], spec.prefix, spec.paths, approved)
+      _update_status(spec.owner[:-1], spec.prefix, approved)
 
-      if spec.label:
+      if hasattr(spec, 'label'):
         if approved:
           github.issue_unlabel(spec.label)
         else:
           github.issue_label(spec.label)
-    elif spec.label: # fyis
+    elif hasattr(spec, 'label'): # fyis
       github.issue_label(spec.label)
 
   return results
@@ -147,8 +192,33 @@ def _pr_review(action, review_state, config):
   _reconcile(config)
 
 
+# Partial approvals are done by commenting "/lgtm [label]".
+def _lgtm_by_comment(config, comment_id, command, sender, sha):
+  labels = command.args
+
+  if len(labels) != 1:
+    react(comment_id, 'please specifiy a single label can be specified')
+    return
+
+  label = labels[0]
+
+  specs = [s for s in _get_specs(config) if hasattr(s, 'label') and s.label == label]
+
+  if len(specs) == 0:
+    react(comment_id, 'no relevant owners for "%s"' % label)
+    return
+
+  for spec in specs:
+    _store_partial_approval(sender, spec.files)
+
+  react(comment_id, None)
+
+  _reconcile(config, specs)
+
+
 handlers.pull_request(func=_pr)
 handlers.pull_request_review(func=_pr_review)
 
 handlers.command(name='checkowners', func=_reconcile)
 handlers.command(name='checkowners!', func=_force_reconcile_and_comment)
+handlers.command(name='lgtm', func=_lgtm_by_comment)
